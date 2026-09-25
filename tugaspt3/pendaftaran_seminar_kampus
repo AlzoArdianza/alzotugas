@@ -1,0 +1,193 @@
+<?php
+if ($_SERVER["REQUEST_METHOD"] == "POST") {
+
+    $nama          = isset($_POST['nama']) ? htmlspecialchars(trim($_POST['nama'])) : '';
+    $nim           = isset($_POST['nim']) ? htmlspecialchars(trim($_POST['nim'])) : '';
+    $email         = isset($_POST['email']) ? filter_var(trim($_POST['email']), FILTER_SANITIZE_EMAIL) : '';
+    $telepon       = isset($_POST['telepon']) ? htmlspecialchars(trim($_POST['telepon'])) : '';
+    $prodi         = isset($_POST['prodi']) ? htmlspecialchars($_POST['prodi']) : '';
+    $jenis_kelamin = isset($_POST['jenis_kelamin']) ? htmlspecialchars($_POST['jenis_kelamin']) : '';
+    $alasan        = isset($_POST['alasan']) ? htmlspecialchars(trim($_POST['alasan'])) : '';
+    $persetujuan   = isset($_POST['persetujuan']) ? true : false;
+
+    $sesi_terpilih = array();
+    if (isset($_POST['sesi']) && is_array($_POST['sesi'])) {
+        foreach ($_POST['sesi'] as $s) {
+            $sesi_terpilih[] = htmlspecialchars($s);
+        }
+    }
+
+    $daftar_prodi = array(
+        'si' => 'Sistem Informasi',
+        'ti' => 'Teknik Informatika',
+        'bd' => 'Bisnis Digital',
+        'ak' => 'Akuntansi',
+        'mb' => 'Manajemen'
+    );
+    $nama_prodi = array_key_exists($prodi, $daftar_prodi) ? $daftar_prodi[$prodi] : 'Tidak Diketahui';
+
+    // Pemetaan Jenis Kelamin
+    $nama_jk = ($jenis_kelamin == 'L') ? 'Laki-laki' : (($jenis_kelamin == 'P') ? 'Perempuan' : '-');
+
+    // 2. Validasi Sederhana
+    $errors = array();
+
+    if (empty($nama)) $errors[] = "Nama Lengkap wajib diisi.";
+    if (empty($nim)) $errors[] = "NIM wajib diisi.";
+    if (empty($email) || !filter_var($email, FILTER_VALIDATE_EMAIL)) $errors[] = "Alamat Email tidak valid.";
+    if (empty($telepon)) $errors[] = "Nomor Telepon wajib diisi.";
+    if (empty($prodi)) $errors[] = "Program Studi wajib dipilih.";
+    if (empty($jenis_kelamin)) $errors[] = "Jenis Kelamin wajib dipilih.";
+    if (empty($sesi_terpilih)) $errors[] = "Pilih minimal satu sesi kegiatan.";
+    if (!$persetujuan) $errors[] = "Anda harus menyetujui syarat dan ketentuan kegiatan.";
+
+} else {
+    header("Location: index.html");
+    exit();
+}
+?>
+
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Status Pendaftaran Kegiatan Kampus</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            margin: 20px;
+            background-color: #f4f6f9;
+            color: #333;
+        }
+        .container {
+            max-width: 650px;
+            margin: 0 auto;
+            background: #ffffff;
+            padding: 25px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h2 {
+            border-bottom: 2px solid #004085;
+            padding-bottom: 8px;
+            color: #004085;
+        }
+        .success-box {
+            background-color: #d4edda;
+            color: #155724;
+            padding: 12px;
+            border-radius: 5px;
+            border: 1px solid #c3e6cb;
+            margin-bottom: 20px;
+        }
+        .error-box {
+            background-color: #f8d7da;
+            color: #721c24;
+            padding: 12px;
+            border-radius: 5px;
+            border: 1px solid #f5c6cb;
+            margin-bottom: 20px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+        th, td {
+            padding: 10px;
+            border-bottom: 1px solid #ddd;
+            text-align: left;
+        }
+        th {
+            width: 35%;
+            background-color: #f8f9fa;
+        }
+        .btn-back {
+            display: inline-block;
+            margin-top: 20px;
+            padding: 10px 18px;
+            background-color: #004085;
+            color: white;
+            text-decoration: none;
+            border-radius: 4px;
+        }
+        .btn-back:hover {
+            background-color: #002752;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>Status Pendaftaran Kegiatan</h2>
+
+    <?php if (!empty($errors)): ?>
+        <div class="error-box">
+            <strong>Pendaftaran Gagal!</strong> Harap perbaiki kesalahan berikut:
+            <ul>
+                <?php foreach ($errors as $error): ?>
+                    <li><?php echo $error; ?></li>
+                <?php endforeach; ?>
+            </ul>
+        </div>
+        <a href="index.html#pendaftaran" class="btn-back">&laquo; Kembali ke Formulir</a>
+
+    <?php else: ?>
+        <div class="success-box">
+            <strong>Berhasil!</strong> Pendaftaran Anda telah kami terima. Bukti pendaftaran telah dikirimkan ke email <strong><?php echo $email; ?></strong>.
+        </div>
+
+        <h3>Bukti Pendaftaran</h3>
+        <table>
+            <tr>
+                <th>Nama Lengkap</th>
+                <td><?php echo $nama; ?></td>
+            </tr>
+            <tr>
+                <th>NIM</th>
+                <td><?php echo $nim; ?></td>
+            </tr>
+            <tr>
+                <th>Email</th>
+                <td><?php echo $email; ?></td>
+            </tr>
+            <tr>
+                <th>Nomor Telepon</th>
+                <td><?php echo $telepon; ?></td>
+            </tr>
+            <tr>
+                <th>Program Studi</th>
+                <td><?php echo $nama_prodi; ?></td>
+            </tr>
+            <tr>
+                <th>Jenis Kelamin</th>
+                <td><?php echo $nama_jk; ?></td>
+            </tr>
+            <tr>
+                <th>Sesi Dipilih</th>
+                <td>
+                    <ul>
+                        <?php foreach ($sesi_terpilih as $s): ?>
+                            <li><?php echo $s; ?></li>
+                        <?php endforeach; ?>
+                    </ul>
+                </td>
+            </tr>
+            <tr>
+                <th>Alasan Mengikuti</th>
+                <td><?php echo nl2br($alasan); ?></td>
+            </tr>
+            <tr>
+                <th>Status Persetujuan</th>
+                <td>Disetujui</td>
+            </tr>
+        </table>
+
+        <a href="index.html" class="btn-back">&laquo; Kembali ke Halaman Utama</a>
+    <?php endif; ?>
+</div>
+
+</body>
+</html>
